@@ -77,7 +77,7 @@ def play():
         while not is_valid:
             is_valid = True
             move = input(f"{"Black" if turns % 2 == 0 else "White"} turn.\nEnter coordinate of your move:")
-            if move[0].isdigit:
+            if move[0].isdigit():
                 print("Invalid input.Please enter again:")
                 is_valid = False
                 continue
@@ -95,8 +95,7 @@ def play():
             board[move_row - 1][move_col] = "◼︎"
         else:
             board[move_row - 1][move_col] = "☐"
-        if turns > 1:
-            os.system("clear")  # only for macOS; windows: os.system("cls")
+        os.system("clear")  # only for macOS; windows: os.system("cls")
         print(display_board(board))
         if win(board):
             print(f"{'Black' if turns % 2 == 0 else 'White'} win!")
