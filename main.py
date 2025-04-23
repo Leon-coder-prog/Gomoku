@@ -77,6 +77,10 @@ def play():
         while not is_valid:
             is_valid = True
             move = input(f"{"Black" if turns % 2 == 0 else "White"} turn.\nEnter coordinate of your move:")
+            if move[0].isdigit:
+                print("Invalid input.Please enter again:")
+                is_valid = False
+                continue
             move_col = ord(move[0]) - 97
             move_row = int(move[1])
             if move_col > 14 or move_row > 14:
@@ -100,4 +104,5 @@ def play():
         turns += 1
 
 
-play()
+if __name__ == "__main__":
+    play()
