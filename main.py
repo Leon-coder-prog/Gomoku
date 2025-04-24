@@ -11,7 +11,7 @@ def win(board):
 
     def get_line(board, row, col, dx, dy):
         line_box = []
-        board_size = len(board)-1
+        board_size = len(board) - 1
         for i in range(board_size):
             x = row + i * dx
             y = col + i * dy
@@ -77,7 +77,7 @@ def play():
         while not is_valid:
             is_valid = True
             move = input(f"{"Black" if turns % 2 == 0 else "White"} turn.\nEnter coordinate of your move:")
-            if move[0].isdigit():
+            if move[0].isdigit() or not move[1].isdigit():
                 print("Invalid input.Please enter again:")
                 is_valid = False
                 continue
