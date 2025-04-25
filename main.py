@@ -1,5 +1,23 @@
 from board import display_board
-import os
+from ai import random_move
+import os, time
+enable_ai = False
+
+
+def menu():
+    global enable_ai
+    while True:
+        choice = input("--Gomoku--\na.Player\nb.AI\nEnter your choice(a or b):")
+        if choice.lower() == "a":
+            enable_ai = False
+            return
+        elif choice.lower() == "b":
+            enable_ai = True
+            return
+        else:
+            print("Invalid choice.Enter again:")
+            time.sleep(1)
+            os.system("clear")
 
 
 def win(board):
@@ -50,6 +68,32 @@ def win(board):
 
 
 def play():
+    def get_move(enable_ai, turns, side, state):
+        if not enable_ai:
+            fn_move = input(f"{"Black" if turns % 2 == 0 else "White"} turn.\nEnter coordinate of your move:")
+        else:
+            if turns % 2 == 0:
+                if side == "a":
+                    fn_move = input("Black turn.\nEnter coordinate of your move:")
+                else:
+                    fn_move = random_move(board)
+            else:
+                if side == "b":
+                    fn_move = input("White turn.\nEnter coordinate of your move:")
+                else:
+                    fn_move = random_move(board)
+        return fn_move
+    menu()
+    if enable_ai:
+        while True:
+            side = input("a.Black or b.White:")
+            if side.lower() in "ab":
+                break
+            else:
+                print("Invalid input.Enter 'a' or 'b':")
+    else:
+        side = None
+    os.system("clear")
     print("---GOMOKU---")
     # initial board
     board = [
@@ -70,13 +114,15 @@ def play():
         ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
     ]
     print(display_board(board))
-    flag = True
     turns = 0
-    while flag:
+    while True:
         is_valid = False
         while not is_valid:
             is_valid = True
-            move = input(f"{"Black" if turns % 2 == 0 else "White"} turn.\nEnter coordinate of your move:")
+            move = get_move(enable_ai, turns, side, board)
+            if move is None:
+                print("AI has no move. Game over.")
+                break
             if move[0].isdigit() or not move[1].isdigit():
                 print("Invalid input.Please enter again:")
                 is_valid = False
