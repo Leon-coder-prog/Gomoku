@@ -128,7 +128,12 @@ def play():
                 is_valid = False
                 continue
             move_col = ord(move[0]) - 97
-            move_row = int(move[1:])
+            try:
+                move_row = int(move[1:])
+            except ValueError:
+                print("Invalid input.Please enter again:")
+                is_valid = False
+                continue
             if move_col > 14 or move_row > 14:
                 print("Out of the board.Please enter another coordinate:")
                 is_valid = False
