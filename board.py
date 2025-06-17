@@ -11,7 +11,7 @@ def display_board(board):
         row_num -= 1
         for box in row:
             if box == "":
-                display += "+"
+                display += "·"
             else:
                 display += box[0]
             display += ' '

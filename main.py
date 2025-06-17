@@ -1,11 +1,13 @@
 from board import display_board
-from ai import random_move
-import os, time
+from ai import *
+import os
+import time
 enable_ai = False
+depth = 0
 
 
 def menu():
-    global enable_ai
+    global enable_ai, depth
     while True:
         choice = input("--Gomoku--\na.Player\nb.AI\nEnter your choice(a or b):")
         if choice.lower() == "a":
@@ -13,6 +15,7 @@ def menu():
             return
         elif choice.lower() == "b":
             enable_ai = True
+            depth = int(input("Choose the depth of AI (1~3):"))
             return
         else:
             print("Invalid choice.Enter again:")
@@ -20,25 +23,46 @@ def menu():
             os.system("clear")
 
 
+# check if the coordinate is in board
+def inboard(x, y, board_size):
+    return 0 <= x <= board_size and 0 <= y <= board_size
+
+
+def opposite(side):
+    if side == 'a':
+        return 'b'
+    elif side == 'b':
+        return 'a'
+
+
+def get_line(board, row, col, dx, dy):
+    line_box = []
+    board_size = len(board) - 1
+    for i in range(board_size):
+        x = row + i * dx
+        y = col + i * dy
+        if inboard(x, y, board_size):
+            line_box.append(board[x][y])
+        else:
+            break
+    return line_box
+
+
+def get_possible_moves(state):
+    possible_moves = []
+    for row_num in range(len(state)):
+        row = state[row_num]
+        for col in range(len(row)):
+            box = row[col]
+            if box == "":
+                possible_moves.append([col, row_num])
+    if not possible_moves:
+        return None
+    return possible_moves  # list
+
+
 def win(board):
     is_win = False
-
-    # check if the coordinate is in board
-    def inboard(x, y, board_size):
-        return 0 <= x <= board_size and 0 <= y <= board_size
-
-    def get_line(board, row, col, dx, dy):
-        line_box = []
-        board_size = len(board) - 1
-        for i in range(board_size):
-            x = row + i * dx
-            y = col + i * dy
-            if inboard(x, y, board_size):
-                line_box.append(board[x][y])
-            else:
-                break
-        return line_box
-
     for row_num in range(len(board)):
         row = board[row_num]
         for col_num in range(len(row)):
@@ -48,6 +72,8 @@ def win(board):
             for piece in get_line(board, row_num, col_num, 0, 1):
                 if piece == box and piece != "":
                     piece_in_line += 1
+                if piece == "":
+                    piece_in_line = 0
                 if piece_in_line == 5:
                     is_win = True
             piece_in_line = 0
@@ -55,13 +81,26 @@ def win(board):
             for piece in get_line(board, row_num, col_num, 1, 0):
                 if piece == box and piece != "":
                     piece_in_line += 1
+                if piece == "":
+                    piece_in_line = 0
                 if piece_in_line == 5:
                     is_win = True
             piece_in_line = 0
-            # diagonal
+            # right-down
             for piece in get_line(board, row_num, col_num, 1, 1):
                 if piece == box and piece != "":
                     piece_in_line += 1
+                if piece == "":
+                    piece_in_line = 0
+                if piece_in_line == 5:
+                    is_win = True
+            # right-up
+            piece_in_line = 0
+            for piece in get_line(board, row_num, col_num, -1, 1):
+                if piece == box and piece != "":
+                    piece_in_line += 1
+                if piece == "":
+                    piece_in_line = 0
                 if piece_in_line == 5:
                     is_win = True
     return is_win
@@ -76,13 +115,18 @@ def play():
                 if side == "a":
                     fn_move = input("Black turn.\nEnter coordinate of your move:")
                 else:
-                    fn_move = random_move(board)
+                    # fn_move = random_move(board)
+                    fn_move = get_best_move(state, side, depth)
             else:
                 if side == "b":
                     fn_move = input("White turn.\nEnter coordinate of your move:")
                 else:
-                    fn_move = random_move(board)
+                    # fn_move = random_move(board)
+                    fn_move = get_best_move(state, side, depth)
+        if type(fn_move) is list:  # move from AI
+            raise Exception("Type of move is list.")
         return fn_move
+
     menu()
     if enable_ai:
         while True:
@@ -148,6 +192,7 @@ def play():
             board[move_row - 1][move_col] = "☐"
         os.system("clear")  # only for macOS; windows: os.system("cls")
         print(display_board(board))
+        # print(f"After decode: row = {move_row}, col = {move_col + 1}")
         if win(board):
             print(f"{'Black' if turns % 2 == 0 else 'White'} win!")
             break
