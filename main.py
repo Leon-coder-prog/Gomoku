@@ -192,7 +192,6 @@ def play():
             board[move_row - 1][move_col] = "☐"
         os.system("clear")  # only for macOS; windows: os.system("cls")
         print(display_board(board))
-        # print(f"After decode: row = {move_row}, col = {move_col + 1}")
         if win(board):
             print(f"{'Black' if turns % 2 == 0 else 'White'} win!")
             break

@@ -1,5 +1,7 @@
 import copy
 import random
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
 from main import *
 
 
@@ -124,15 +126,21 @@ def minimax(board, side, is_maximized, depth):
         return best_score
 
 
+def evaluate_move(move, board, side, depth):
+    new_board = make_move(copy.deepcopy(board), move, side)
+    score = minimax(new_board, side, False, depth - 1)
+    return [move, score]
+
+
 def get_best_move(board, side, depth):
     best_score = float('-inf')
     best_move = None
-    for move in get_possible_moves(board):
-        new_board = make_move(copy.deepcopy(board), move, side)
-        score = minimax(new_board, side, False, depth - 1)
-        if score > best_score:
-            best_score = score
-            best_move = move
+    with ProcessPoolExecutor() as executor:
+        for val in executor.map(evaluate_move, get_possible_moves(board),
+                                repeat(board), repeat(side), repeat(depth)):
+            if val[1] > best_score:
+                best_score = val[1]
+                best_move = val[0]
     if best_move is None:
         raise Exception('No valid move found')
     best_move = f'{chr(best_move[0] + 97)}{best_move[1] + 1}'
