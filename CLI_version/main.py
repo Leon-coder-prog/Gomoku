@@ -163,13 +163,13 @@ def play():
                     fn_move = input("Black turn.\nEnter coordinate of your move:")
                 else:
                     # fn_move = random_move(board)
-                    fn_move = get_best_move(state, side, ai_side, depth, turns)
+                    fn_move = get_best_move(state, ai_side, ai_side, depth, turns)
             else:
                 if side == "b":
                     fn_move = input("White turn.\nEnter coordinate of your move:")
                 else:
                     # fn_move = random_move(board)
-                    fn_move = get_best_move(state, side, ai_side, depth, turns)
+                    fn_move = get_best_move(state, ai_side, ai_side, depth, turns)
         if type(fn_move) is list:  # move from AI
             raise Exception("Type of move is list.")
         return fn_move
@@ -205,23 +205,17 @@ def play():
             move = get_move(enable_ai, turns, side, board)
             if move is None and enable_ai:
                 print("AI has no move. Game over.")
-                break
-            if move.isspace() or move == "" or len(move) < 2:
-                print("Invalid input.Please enter again:")
-                is_valid = False
-                continue
-            if move[0].isdigit() or not move[1].isdigit():
+                return
+            if (len(move) < 2
+                    or move[0].lower() not in "abcdefghijklmno"
+                    or not move[1:].isascii()
+                    or not move[1:].isdigit()):
                 print("Invalid input.Please enter again:")
                 is_valid = False
                 continue
             move_col = ord(move[0].lower()) - 97
-            try:
-                move_row = int(move[1:])
-            except ValueError:
-                print("Invalid input.Please enter again:")
-                is_valid = False
-                continue
-            if move_col > 14 or move_row > 15:
+            move_row = int(move[1:])
+            if not inboard(move_col, move_row - 1, len(board)):
                 print("Out of the board.Please enter another coordinate:")
                 is_valid = False
                 continue
@@ -241,6 +235,11 @@ def play():
         if win(board):
             print("-" * 40)
             print(f"{'Black' if turns % 2 == 0 else 'White'} win!")
+            print("-" * 40)
+            break
+        if turns == len(board) ** 2 - 1:
+            print("-" * 40)
+            print("Draw!")
             print("-" * 40)
             break
         turns += 1

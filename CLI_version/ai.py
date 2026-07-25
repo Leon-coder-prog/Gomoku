@@ -109,43 +109,64 @@ def local_patterns_detect(board, r, c, side):
         else:
             return 'O'
 
+    def local_line(dx, dy):
+        start_r, start_c = r, c
+        move_index = 0
+        board_size = len(board)
+        while (0 <= start_r - dx < board_size
+               and 0 <= start_c - dy < board_size):
+            start_r -= dx
+            start_c -= dy
+            move_index += 1
+        line = ''.join(convert(p, side) for p in
+                       get_line(board, start_r, start_c, dx, dy))
+        return line, move_index
+
+    def contains_move(line, move_index, pattern):
+        start = line.find(pattern)
+        while start != -1:
+            if start <= move_index < start + len(pattern):
+                return True
+            start = line.find(pattern, start + 1)
+        return False
+
     patterns = []
     # downwards
-    down = ''.join(convert(p, side) for p in get_line(board, r, c, 0, 1))
+    down = local_line(0, 1)
     # rightwards
-    right = ''.join(convert(p, side) for p in get_line(board, r, c, 1, 0))
+    right = local_line(1, 0)
     # right_down
-    right_down = ''.join(convert(p, side) for p in get_line(board, r, c, 1, 1))
+    right_down = local_line(1, 1)
     # right_up
-    right_up = ''.join(convert(p, side) for p in get_line(board, r, c, -1, 1))
+    right_up = local_line(-1, 1)
 
     directions = [down, right, right_down, right_up]
-    for direction in directions:
-        if 'XXXXX' in direction:
+    for direction, move_index in directions:
+        if contains_move(direction, move_index, 'XXXXX'):
             patterns.append('five')
-        elif '_XXXX_' in direction:
+        elif contains_move(direction, move_index, '_XXXX_'):
             patterns.append('live_four')
-        elif '_XXX_X' in direction \
-                or '_XX_XX' in direction \
-                or '_X_XXX' in direction:
+        elif contains_move(direction, move_index, '_XXX_X') \
+                or contains_move(direction, move_index, '_XX_XX') \
+                or contains_move(direction, move_index, '_X_XXX'):
             patterns.append('jump_four')
-        elif '_XXXX' in direction \
-                or 'XXXX_' in direction:
+        elif contains_move(direction, move_index, '_XXXX') \
+                or contains_move(direction, move_index, 'XXXX_'):
             patterns.append('dead_four')
-        elif '_XXX_' in direction:
+        elif contains_move(direction, move_index, '_XXX_'):
             patterns.append('live_three')
-        elif '_XX_X_' in direction \
-                or 'X_XX' in direction:
+        elif contains_move(direction, move_index, '_XX_X_') \
+                or contains_move(direction, move_index, 'X_XX'):
             patterns.append('jump_three')
-        elif 'XXX__' in direction \
-                or '__XXX' in direction:
+        elif contains_move(direction, move_index, 'XXX__') \
+                or contains_move(direction, move_index, '__XXX'):
             patterns.append('dead_three')
-        elif '_XX_' in direction:
+        elif contains_move(direction, move_index, '_XX_'):
             patterns.append('live_two')
-        elif '__XX' in direction \
-                or 'XX__' in direction:
+        elif contains_move(direction, move_index, '__XX') \
+                or contains_move(direction, move_index, 'XX__'):
             patterns.append('dead_two')
-        elif '___X___' in direction:
+        elif contains_move(direction, move_index, '___X___'):
             patterns.append('single')
     return patterns
 
@@ -170,7 +191,7 @@ def evaluate(board, side):
 
 
 def minimax(board, ai_side, is_maximized, alpha, beta, depth, turns):
-    key = (board_key(board), depth, is_maximized, turns_range(turns))
+    key = (board_key(board), ai_side, depth, is_maximized, turns_range(turns))
     if key in TT:
         return TT[key]
     if win(board) or depth == 0:
@@ -178,6 +199,10 @@ def minimax(board, ai_side, is_maximized, alpha, beta, depth, turns):
         TT[key] = score
         return score
     possible_moves = get_candidate_move(board, radius_adjust(turns))
+    if not possible_moves:
+        score = evaluate(board, ai_side)
+        TT[key] = score
+        return score
     # scored_moves = []
 
     # for move in possible_moves:
@@ -194,12 +219,12 @@ def minimax(board, ai_side, is_maximized, alpha, beta, depth, turns):
         best_score = float('-inf')
         for move in scored_moves:
             make_move(board, move, ai_side)
-            score = minimax(board, opposite(ai_side), False, alpha, beta, depth - 1, turns)
+            score = minimax(board, ai_side, False, alpha, beta, depth - 1, turns)
             undo_move(board, move)
             best_score = max(best_score, score)
             alpha = max(score, alpha)
             if alpha >= beta:
-                break
+                return best_score
         TT[key] = best_score
         return best_score
     # player's decision (min layer)
@@ -212,7 +237,7 @@ def minimax(board, ai_side, is_maximized, alpha, beta, depth, turns):
             best_score = min(best_score, score)
             beta = min(score, beta)
             if alpha >= beta:
-                break
+                return best_score
         TT[key] = best_score
         return best_score
 
@@ -221,7 +246,7 @@ def evaluate_move(move, board, side, ai_side, depth, turns):
     # board_copy = copy.deepcopy(board)
     make_move(board, move, side)
     next_maximizing = (side != ai_side)
-    score = minimax(board, opposite(side), next_maximizing, float('-inf'), float('inf'), depth - 1, turns)
+    score = minimax(board, ai_side, next_maximizing, float('-inf'), float('inf'), depth - 1, turns)
     undo_move(board, move)
     return [move, score]
 
@@ -300,6 +325,8 @@ def get_best_move(board, side, ai_side, depth, turns):
     candidates = get_candidate_move(board, radius_adjust(turns))
     if not candidates:
         candidates = get_possible_moves(board)
+    if not candidates:
+        return None
     forced_move = get_forced_moves(board, side, turns)
     if forced_move:
         best_move = forced_move
@@ -310,7 +337,7 @@ def get_best_move(board, side, ai_side, depth, turns):
         if score > best_score:
             best_score = score
             best_move = move_
-    if best_move is None and turns > 1:
-        raise Exception('No valid move found')
+    if best_move is None:
+        return None
     best_move = f'{chr(best_move[0] + 97)}{best_move[1] + 1}'
     return best_move  # string
