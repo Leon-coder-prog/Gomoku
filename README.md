@@ -6,7 +6,9 @@ This is a Python implementation of the classic Gomoku (Five in a Row) game. It s
 
 The AI combines Minimax with alpha-beta pruning, pattern-based evaluation, candidate-move filtering, and transposition-table caching.
 
-![Gomoku gameplay screenshot](assets/images/gameplay.png)
+<p align="center">
+  <img src="assets/images/gameplay.png" alt="Gomoku gameplay screenshot" width="350">
+</p>
 
 ## Features
 
