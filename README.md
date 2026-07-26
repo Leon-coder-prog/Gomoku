@@ -1,15 +1,19 @@
 # Gomoku
 
-This is a Python implementation of the classic Gomoku (Five in a Row) game. The program supports both human vs human and human vs AI modes with configurable AI search depth.
+> A terminal-based Gomoku game with a configurable Minimax AI.
 
-The AI uses the Minimax algorithm with alpha-beta pruning and other search optimizations.
+This is a Python implementation of the classic Gomoku (Five in a Row) game. It supports both human vs human and human vs AI modes with configurable AI search depth.
+
+The AI combines Minimax with alpha-beta pruning, pattern-based evaluation, candidate-move filtering, and transposition-table caching.
+
+![Gomoku gameplay screenshot](assets/images/gameplay.png)
 
 ## Features
 
-- 15×15 board display
-- Human vs Human gameplay
-- Human vs AI gameplay
-- Win condition detection
+- 15×15 terminal board
+- Human vs Human and Human vs AI gameplay
+- Configurable AI search depth
+- Automatic win condition detection
 
 ## Requirements
 
@@ -71,12 +75,13 @@ A player wins when they get 5 of their pieces in a row in any direction: horizon
 
 ```text
 .
-├── main.py        # Main program
-├── board.py       # Board display logic
-├── ai.py          # AI logic
-└── README.md      # This file
+├── main.py         # Main program
+├── board.py        # Board display logic
+├── ai.py           # AI logic
+├── assets/         # Project images and assets
+└── README.md       # This file
 ```
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
